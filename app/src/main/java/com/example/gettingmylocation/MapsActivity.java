@@ -3,6 +3,7 @@ package com.example.gettingmylocation;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -11,6 +12,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -18,6 +20,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
 
@@ -25,6 +28,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationManager locationManager;
     private String provider;
     private final int FINE_LOCATION_PERMISSION = 9999;
+    private String dist;
 
 
     @Override
@@ -38,6 +42,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_LOCATION_PERMISSION);
         }
+
+
+
 
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -63,6 +70,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
         Location location = locationManager.getLastKnownLocation(provider);
+
 
         if (location != null) {
             Log.i("Seen", "SEEN!!!");
@@ -102,20 +110,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
         // Add a marker in Sydney and move the camera
         }
 
     @Override
     public void onLocationChanged(Location location) {
 
-        Double lat , lng;
+        double lat , lng;
         lat = location.getLatitude();
         lng = location.getLongitude();
+
+        PolylineOptions options = new PolylineOptions();
+
+        LatLng newLocation = new LatLng(7.2222 ,  5.8999);
+        mMap.addMarker(new MarkerOptions().position(newLocation).title("New Position"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(newLocation));
+
+        Toast.makeText(this, "Location" + lat + lng, Toast.LENGTH_SHORT).show();
 
         LatLng myposition = new LatLng(lat, lng);
         mMap.addMarker(new MarkerOptions().position(myposition).title("My Position"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(myposition));
+        options.add(myposition , newLocation);
+        options.width(5);
+        options.color(Color.BLUE);
+
+
+        Toast.makeText(this, "The distance " + distancebetween(newLocation , myposition), Toast.LENGTH_LONG).show();
 
 
     }
@@ -133,5 +154,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onProviderDisabled(String provider) {
 
+    }
+
+
+    private float distancebetween(LatLng latLng1 , LatLng latLng2){
+        Location location1 = new Location(LocationManager.GPS_PROVIDER);
+        Location location2 = new Location(LocationManager.GPS_PROVIDER);
+
+        location1.setLatitude(latLng1.latitude);
+        location1.setLongitude(latLng1.longitude);
+
+        location2.setLatitude(latLng2.latitude);
+        location2.setLongitude(latLng2.longitude);
+
+        return location1.distanceTo(location2);
     }
 }
